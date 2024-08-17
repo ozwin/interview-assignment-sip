@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"sync"
 	"time"
@@ -32,6 +33,7 @@ func simulateClient(id int, address string) {
 	conn, err := net.Dial("tcp", configs.ServerAddress)
 	if err != nil {
 		fmt.Printf("error while pinging a server %v", err.Error())
+		log.Fatalln("Please check if the SIP Server is running")
 	}
 	defer conn.Close()
 	_, err = conn.Write([]byte(address))
@@ -49,5 +51,5 @@ func simulateClient(id int, address string) {
 		}
 		response = append(response, buffer[:n]...)
 	}
-	fmt.Printf("client: %v address: %v response %v", id, address, string(response))
+	fmt.Printf("client: %v address: %v response %v\n", id, address, string(response))
 }
