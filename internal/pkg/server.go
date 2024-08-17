@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func NewServer(host string, requestHandler RequestHandler) error {
+func NewServer(host string, handler RequestHandler) error {
 	listener, err := net.Listen("tcp", host)
 	if err != nil {
 		panic(fmt.Sprintf("failed to stat the server: %v", err))
@@ -21,13 +21,15 @@ func NewServer(host string, requestHandler RequestHandler) error {
 			continue
 		}
 		fmt.Println("client connected")
-		go handleConnection(conn, requestHandler)
+		go handleConnection(conn, handler)
 	}
 }
 
-type RequestHandler func(request string) string
+type RequestHandler interface {
+	HandleRequest(request string) string
+}
 
-func handleConnection(conn net.Conn, responseHandler RequestHandler) {
+func handleConnection(conn net.Conn, handler RequestHandler) {
 	defer conn.Close()
 	writer := bufio.NewWriter(conn)
 	for {
@@ -45,7 +47,7 @@ func handleConnection(conn net.Conn, responseHandler RequestHandler) {
 				break
 			}
 		}
-		output := responseHandler(string(buffer[:n]))
+		output := handler.HandleRequest(string(buffer[:n]))
 		writer.WriteString(output)
 
 		err = writer.Flush()

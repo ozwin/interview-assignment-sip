@@ -6,15 +6,18 @@ import (
 	"time"
 )
 
+type DummyHandler struct{}
+
+func (dh *DummyHandler) HandleRequest(request string) string {
+	return request + " back"
+}
+
 func Test_handleConnection(t *testing.T) {
 	server, client := net.Pipe()
 	defer client.Close()
 	defer server.Close()
-	dummyHandler := func(in string) string {
-		return in + " back"
-	}
 
-	go handleConnection(server, dummyHandler)
+	go handleConnection(server, &DummyHandler{})
 
 	client.Write([]byte("Hello"))
 	// Read the response from the server.

@@ -1,4 +1,4 @@
-package app
+package services
 
 import (
 	"fmt"
@@ -6,26 +6,30 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/ozwin/interview-assignment-sip/internal/app/models"
 )
 
-func TestReadTransactionsFromFile(t *testing.T) {
+func Test_readTransactionsFromFile(t *testing.T) {
+
 	fileName := "sample_registrations"
 	createSampledataFile(t, fileName)
 	defer deleteSampleDataFile(t, fileName)
+
 	type args struct {
 		fileName string
 	}
 	tests := []struct {
 		name    string
 		args    args
-		want    *Transactions
+		want    *models.Transactions
 		wantErr bool
 	}{
 		// TODO: Add test cases.
 		{
 			name: "Valid Data",
 			args: args{fileName: fileName},
-			want: &Transactions{
+			want: &models.Transactions{
 				{
 					Address:      "1",
 					TenantId:     "1",
@@ -59,88 +63,22 @@ func TestReadTransactionsFromFile(t *testing.T) {
 			want:    nil,
 			wantErr: true,
 		},
+		// {
+		// 	name:    "Main file name",
+		// 	args:    args{fileName: "../../data/sample_registrations"},
+		// 	want:    nil,
+		// 	wantErr: false,
+		// },
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ReadTransactionsFromFile(tt.args.fileName)
+			got, err := readTransactionsFromFile(tt.args.fileName)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ReadTransactionsFromFile() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("readTransactionsFromFile() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ReadTransactionsFromFile() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestTransactions_FindByAddress(t *testing.T) {
-	transactions := &Transactions{
-		{
-			Address:      "1",
-			TenantId:     "1",
-			Uri:          "1",
-			Contact:      "1",
-			Path:         []string{"a", "b"},
-			Source:       "1",
-			Target:       "1",
-			UserAgent:    "1",
-			RawUserAgent: "1",
-			Created:      "2016-12-12T22:40:40.764Z",
-			LineId:       "1",
-		}, {
-			Address:      "2",
-			TenantId:     "2",
-			Uri:          "2",
-			Contact:      "2",
-			Path:         []string{"a"},
-			Source:       "2",
-			Target:       "2",
-			UserAgent:    "2",
-			RawUserAgent: "2",
-			Created:      "2018-12-12T22:40:40.764Z",
-			LineId:       "2",
-		},
-	}
-	type args struct {
-		address string
-	}
-	tests := []struct {
-		name string
-		ts   *Transactions
-		args args
-		want *Transaction
-	}{
-		// TODO: Add test cases.
-		{
-			name: "Valid address",
-			ts:   transactions,
-			args: args{address: "1"},
-			want: &Transaction{
-				Address:      "1",
-				TenantId:     "1",
-				Uri:          "1",
-				Contact:      "1",
-				Path:         []string{"a", "b"},
-				Source:       "1",
-				Target:       "1",
-				UserAgent:    "1",
-				RawUserAgent: "1",
-				Created:      "2016-12-12T22:40:40.764Z",
-				LineId:       "1",
-			},
-		},
-		{
-			name: "Invalid address",
-			ts:   transactions,
-			args: args{address: "5"},
-			want: nil,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := tt.ts.FindByAddress(tt.args.address); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("Transactions.FindByAddress() = %v, want %v", got, tt.want)
+				t.Errorf("readTransactionsFromFile() = %v, want %v", got, tt.want)
 			}
 		})
 	}
