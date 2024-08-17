@@ -20,7 +20,7 @@ func NewServer(host string, handler RequestHandler) error {
 			fmt.Printf("error accepting connection: %v", err)
 			continue
 		}
-		fmt.Println("client connected")
+		fmt.Printf("client connected: %v \n", conn.RemoteAddr())
 		go handleConnection(conn, handler)
 	}
 }
