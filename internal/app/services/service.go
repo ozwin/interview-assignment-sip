@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 
@@ -14,7 +13,7 @@ import (
 )
 
 type TransactionService struct {
-	store *dal.KeyValueStore[string, models.Transaction]
+	store dal.Store[string, models.Transaction]
 }
 
 func NewTransactionService() *TransactionService {
@@ -23,7 +22,7 @@ func NewTransactionService() *TransactionService {
 		panic(fmt.Sprintf("failed to initialized the store: %v", err))
 	}
 	//initalize store capacity
-	store := dal.Initialize[string, models.Transaction](len(*transactions))
+	store := dal.InitializeKeyValueStore[string, models.Transaction](len(*transactions))
 	for _, transaction := range *transactions {
 		store.Set(transaction.Address, transaction)
 	}
@@ -53,24 +52,14 @@ func readTransactionsFromFile(fileName string) (*models.Transactions, error) {
 		return nil, err
 	}
 	defer file.Close()
-	data, err := io.ReadAll(file)
-	if err != nil {
-		log.Fatalf("error while reading file: %v", err.Error())
-	}
-	rawTransactions := strings.Split(string(data), "}")
-	transactions := make(models.Transactions, 0, len(rawTransactions))
-	for _, rawTransaction := range rawTransactions {
-		if strings.TrimSpace(rawTransaction) == "" {
-			continue
-		}
-		data := strings.TrimSpace(rawTransaction)
-		//Removed it while splitting based on }
-		//since objects weren't seperated with a delimiter in the file
-		data += "}"
+	transactions := make(models.Transactions, 0)
+	decoder := json.NewDecoder(file)
+	for {
 		var transaction models.Transaction
-		if err := json.Unmarshal([]byte(data), &transaction); err != nil {
-			//log and forget for now
-			log.Fatalf("error while parsing string to transaction object: %v", err)
+		if err := decoder.Decode(&transaction); err == io.EOF {
+			break
+		} else if err != nil {
+			return nil, err
 		}
 		transactions = append(transactions, transaction)
 	}

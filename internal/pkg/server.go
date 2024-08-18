@@ -2,9 +2,13 @@ package pkg
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"io"
 	"net"
 	"time"
+
+	"github.com/ozwin/interview-assignment-sip/internal/configs"
 )
 
 func NewServer(host string, handler RequestHandler) error {
@@ -13,7 +17,7 @@ func NewServer(host string, handler RequestHandler) error {
 		panic(fmt.Sprintf("failed to stat the server: %v", err))
 	}
 	defer listener.Close()
-	fmt.Printf("server listening at: %v", host)
+	fmt.Printf("server listening at: %v\n", host)
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
@@ -32,27 +36,30 @@ type RequestHandler interface {
 func handleConnection(conn net.Conn, handler RequestHandler) {
 	defer conn.Close()
 	writer := bufio.NewWriter(conn)
+	buffer := make([]byte, 1024)
 	for {
-		conn.SetReadDeadline(time.Now().Add(time.Second * 10))
-
+		conn.SetReadDeadline(time.Now().Add(configs.ConnectionTimeout))
 		//keep this for now
-		buffer := make([]byte, 1024)
 		n, err := conn.Read(buffer)
-
 		if err != nil {
 			if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
-				fmt.Printf("error occured: %v", err.Error())
-				continue
+				fmt.Printf("client is inactive for more than 10 seconds, closing connection for %v \n", conn.RemoteAddr())
+			} else if errors.Is(err, io.EOF) {
+				fmt.Printf("connection closed by the client %v\n", conn.RemoteAddr())
 			} else {
-				break
+				fmt.Printf("unknown error %v\n", err)
 			}
+			return
 		}
-		output := handler.HandleRequest(string(buffer[:n]))
-		writer.WriteString(output)
+		response := handler.HandleRequest(string(buffer[:n]))
 
-		err = writer.Flush()
-		if err != nil {
-			fmt.Printf("Error flushing writer: %v\n", err)
+		if _, err = writer.WriteString(response); err != nil {
+			fmt.Printf("error while writing back to the client: %v\n", err)
+			return
+		}
+
+		if err = writer.Flush(); err != nil {
+			fmt.Printf("error flushing writer: %v\n", err)
 			return
 		}
 	}
