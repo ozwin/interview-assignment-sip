@@ -19,7 +19,7 @@ func Test_handleConnection(t *testing.T) {
 
 	go handleConnection(server, &DummyHandler{})
 
-	client.Write([]byte("Hello"))
+	client.Write([]byte("Hello\n"))
 	// Read the response from the server.
 	var responseData []byte
 	buffer := make([]byte, 1024)
@@ -33,7 +33,7 @@ func Test_handleConnection(t *testing.T) {
 		responseData = append(responseData, buffer[:n]...)
 	}
 
-	expectedResponse := "Hello back"
+	expectedResponse := "Hello\n back"
 	response := string(responseData)
 	if response != expectedResponse {
 		t.Errorf("expected response %q, got %q", expectedResponse, response)
