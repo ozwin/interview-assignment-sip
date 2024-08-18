@@ -1,4 +1,21 @@
 # interview-assignment-sip
+## About
+This project intended to demonstrate a simple SIP transaction lookup by its address, with a client-server model using a TCP socket
+### Features 
++ Application can be initialized with a valid JSON transactions file (as long as it fits in the memory)
++ A client can make any number of requests on the same open connection as long as requests are terminated by a new line character(used as an EOL token , as per the doc)
++ A client is terminated by the server if there is no activity for more than 10 seconds
++ Configurable through internal/configs file
+## Architecture
+This project is using layered architecture, with each layer loosely coupled with other
+<img width="500" alt="image" src="https://github.com/user-attachments/assets/e826498b-627e-445c-a083-ae4ab33a24c5">
+
+**Data layer**: This layer is responsible for the data management and querying, for this project, I have defined an interface that ensures required functionalities are provided by the underlying data layer structs. This enables easy replacement of underlying data storage solutions, for this project although I am using simple in-memory Key Value pair implementation, it can be replaced with any persistent storage given that the solution implements the dal layer interfaces.
+
+**Service layer**: This layer is responsible for the business logic of the application, it accesses the dal layer through the interface. This layer also ensures that there are no dependencies on the external user interfaces such as HTTP context, command line arg, buffer, etc and logic only depends on the function parameters, and the response is provided only through the returned values. 
+
+
+**User Interface Layer/Presentation Layer**: This layer is responsible for accessing the application services. The same service layer can be used with any user interface.
  
 ## How to Run? 
 
