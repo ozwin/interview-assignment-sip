@@ -36,11 +36,13 @@ type RequestHandler interface {
 func handleConnection(conn net.Conn, handler RequestHandler) {
 	defer conn.Close()
 	writer := bufio.NewWriter(conn)
-	buffer := make([]byte, 1024)
+	reader := bufio.NewReader(conn)
+	// buffer := make([]byte, 1024)
 	for {
 		conn.SetReadDeadline(time.Now().Add(configs.ConnectionTimeout))
 		//keep this for now
-		n, err := conn.Read(buffer)
+		// n, err := conn.Read(buffer)
+		payload, err := reader.ReadString('\n')
 		if err != nil {
 			if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
 				fmt.Printf("client is inactive for more than 10 seconds, closing connection for %v \n", conn.RemoteAddr())
@@ -51,7 +53,7 @@ func handleConnection(conn net.Conn, handler RequestHandler) {
 			}
 			return
 		}
-		response := handler.HandleRequest(string(buffer[:n]))
+		response := handler.HandleRequest(payload)
 
 		if _, err = writer.WriteString(response); err != nil {
 			fmt.Printf("error while writing back to the client: %v\n", err)

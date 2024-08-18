@@ -16,7 +16,7 @@ func main() {
 	wg.Add(clientCount)
 
 	addresses := []string{
-		"0142e2fa3543cb32bf000100620002", "2", "014d20b404146b9a04000100620002", "5", "TUcns7plzjTV3UGwwWGRhNFzANqtf5",
+		"0142e2fa3543cb32bf000100620002\n", "2\n", "014d20b404146b9a04000100620002\n", "5\n", "TUcns7plzjTV3UGwwWGRhNFzANqtf5\n",
 	}
 
 	for index := range clientCount {
